@@ -4,8 +4,8 @@ exports.up = function(knex, Promise) {
     table.string('username').references('users.username');
     table.integer('article_id').references('articles.article_id');
     table.integer('votes').defaultTo(0);
-    table.timestamps();
-    table.string('body');
+    table.date('created_at', 6).defaultTo(knex.fn.now(6));
+    table.string('body', 2000);
   });
 };
 

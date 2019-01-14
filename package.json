@@ -10,7 +10,8 @@
     "posttest": "npm run lint",
     "migrate:make": "knex migrate:make",
     "migrate:latest": "knex migrate:latest",
-    "migrate:rollack": "knex migrate:rollback"
+    "migrate:rollack": "knex migrate:rollback",
+    "seed:db": "npm run migrate:rollack && npm run migrate:latest && knex seed:run"
   },
   "repository": {
     "type": "git",
