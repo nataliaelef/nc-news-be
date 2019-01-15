@@ -22,7 +22,22 @@ exports.addTopic = (req, res, next) => {
 };
 
 exports.getArticlesByTopic = (req, res, next) => {
-  const { limit, sort_by, p, order, ...restOfTopicArt } = req.params;
+  //console.log(req.params);
+  const col = [
+    'author',
+    'title',
+    'article_id',
+    'votes',
+    'comment_count',
+    'created_at',
+    'topic'
+  ];
+  const { limit: maxResults, sort_by, p, order, ...restOfTopicArt } = req.query;
+
+  if (sort_by && !col.includes(sort_by)) {
+    return res.status(400).send({ message: 'bad request' });
+  }
+
   connection('topics')
     .select(
       'username AS author',
@@ -34,10 +49,16 @@ exports.getArticlesByTopic = (req, res, next) => {
       'topic'
     )
     .where(req.params)
+    .offset((p - 1) * (maxResults || 10) || 0)
+    .limit(maxResults || 10)
+    .orderBy(sort_by || 'created_at', order || 'desc')
     .count('articles.article_id as comment_count')
     .join('articles', 'topics.slug', 'articles.topic')
     .groupBy('articles.article_id')
     .then(articles => {
+      if (!articles.length)
+        return Promise.reject({ status: 404, message: 'No articles found' });
       res.status(200).send({ articles });
-    });
+    })
+    .catch(next);
 };

@@ -6,3 +6,8 @@ exports.handle400 = (err, req, res, next) => {
     res.status(400).send({ message: err.toString() });
   else next(err);
 };
+
+exports.handle404 = (err, req, res, next) => {
+  // console.log(err);
+  res.status(404).send({ message: err.message });
+};
