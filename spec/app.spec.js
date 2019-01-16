@@ -51,12 +51,13 @@ describe('/api', () => {
         .send({ slug: 'mitch' })
         .expect(400);
     });
+    //need to fix this one!
     it('GET status: 200 responds with an array of article objects for a given topic', () => {
       return request
         .get('/api/topics/cats/articles')
         .expect(200)
         .then(({ body }) => {
-          //console.log(body.articles);
+          //console.log(body);
           expect(body.articles).to.be.an('array');
           expect(body.articles[0]).to.have.keys(
             'author',
@@ -78,6 +79,7 @@ describe('/api', () => {
           expect(body.message).to.equal('No articles found');
         });
     });
+    //test 400 bad request, should accept only strings!!
     it('GET status: 200 accepts limit query with default 10', () => {
       return request
         .get('/api/topics/mitch/articles?limit=10')
@@ -175,6 +177,38 @@ describe('/api', () => {
         body: "Nonsense, it's not even that big!",
         username: 'butter_bridge'
       });
+    });
+  });
+  //need to fix comment_count!!!
+  describe('/articles', () => {
+    it('GET status: 200 responds with an array of article objects', () => {
+      return request
+        .get('/api/articles')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body.articles);
+          expect(body.articles).to.be.an('array');
+          expect(body.articles[0]).to.have.keys(
+            'author',
+            'title',
+            'article_id',
+            'votes',
+            'comment_count',
+            'created_at',
+            'topic',
+            'body'
+          );
+        });
+    });
+    it('GET status: 200 responds with the total of the comments for each article', () => {
+      return request
+        .get('/api/articles')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body.articles);
+          expect(body.articles[3].author).to.equal('butter_bridge');
+          expect(body.articles[3].comment_count).to.equal('2');
+        });
     });
   });
 });

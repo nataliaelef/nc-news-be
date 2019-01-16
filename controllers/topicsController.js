@@ -22,7 +22,7 @@ exports.addTopic = (req, res, next) => {
 
 exports.getArticlesByTopic = (req, res, next) => {
   //console.log(req.params);
-  const col = [
+  const columns = [
     'author',
     'title',
     'article_id',
@@ -32,7 +32,7 @@ exports.getArticlesByTopic = (req, res, next) => {
     'topic'
   ];
   const { limit: maxResults, sort_by, p, order, ...restOfTopicArt } = req.query;
-  if (sort_by && !col.includes(sort_by)) {
+  if (sort_by && !columns.includes(sort_by)) {
     return res.status(400).send({ message: 'bad request' });
   }
   connection('topics')
