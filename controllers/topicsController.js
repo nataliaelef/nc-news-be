@@ -31,26 +31,37 @@ exports.getArticlesByTopic = (req, res, next) => {
     'created_at',
     'topic'
   ];
-  const { limit: maxResults, sort_by, p, order, ...restOfTopicArt } = req.query;
-  if (sort_by && !columns.includes(sort_by)) {
+  const {
+    limit: maxResults,
+    sort_by,
+    p: page,
+    order,
+    ...restOfTopicArt
+  } = req.query;
+  if (
+    (sort_by && !columns.includes(sort_by)) ||
+    (maxResults && isNaN(maxResults)) ||
+    (page && isNaN(page))
+  ) {
     return res.status(400).send({ message: 'bad request' });
   }
-  connection('topics')
+
+  connection('articles')
     .select(
-      'username AS author',
-      'title',
-      'article_id',
-      'votes',
-      'article_id AS comment_count',
-      'created_at',
-      'topic'
+      'articles.username AS author',
+      'articles.title',
+      'articles.article_id',
+      'articles.votes',
+      'articles.created_at',
+      'articles.topic'
     )
     .where(req.params)
-    .offset((p - 1) * (maxResults || 10) || 0)
+    .offset((page - 1) * (maxResults || 10) || 0)
     .limit(maxResults || 10)
     .orderBy(sort_by || 'created_at', order || 'desc')
-    .count('articles.article_id as comment_count')
-    .join('articles', 'topics.slug', 'articles.topic')
+    .count('comments.article_id as comment_count')
+    .leftJoin('topics', 'topics.slug', 'articles.topic')
+    .leftJoin('comments', 'comments.article_id', 'articles.article_id')
     .groupBy('articles.article_id')
     .then(articles => {
       if (!articles.length)

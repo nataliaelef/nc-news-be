@@ -51,7 +51,6 @@ describe('/api', () => {
         .send({ slug: 'mitch' })
         .expect(400);
     });
-    //need to fix this one!
     it('GET status: 200 responds with an array of article objects for a given topic', () => {
       return request
         .get('/api/topics/cats/articles')
@@ -70,6 +69,20 @@ describe('/api', () => {
           );
         });
     });
+    it('GET status: 200 responds with the total of the comments for the specific article', () => {
+      return request
+        .get('/api/topics/mitch/articles')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body.articles);
+          expect(
+            body.articles.find(article => article.article_id == 9).comment_count
+          ).to.equal('2');
+          expect(
+            body.articles.find(article => article.article_id == 1).comment_count
+          ).to.equal('13');
+        });
+    });
     it('GET status: 404 client uses a non-existent topic', () => {
       return request
         .get('/api/topics/dogs/articles')
@@ -79,14 +92,28 @@ describe('/api', () => {
           expect(body.message).to.equal('No articles found');
         });
     });
-    //test 400 bad request, should accept only strings!!
+    //shoulb it be 400 - bad request?!
+    it('GET status: 404 client uses wrong type of topic (only string allowed)', () => {
+      return request.get('/api/topics/6556/articles').expect(404);
+    });
     it('GET status: 200 accepts limit query with default 10', () => {
       return request
-        .get('/api/topics/mitch/articles?limit=10')
+        .get('/api/topics/mitch/articles?limit=5')
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles).to.have.length(5);
+        });
+    });
+    it('GET status: 200 checks if limit defaults to 10 if not given', () => {
+      return request
+        .get('/api/topics/mitch/articles')
         .expect(200)
         .then(({ body }) => {
           expect(body.articles).to.have.length(10);
         });
+    });
+    it('GET status: 400 client uses string instead of number in limit query', () => {
+      return request.get('/api/topics/mitch/articles?limit=gsjfji').expect(400);
     });
     it('GET status: 200 defaults sort_by date', () => {
       return request
@@ -100,12 +127,13 @@ describe('/api', () => {
           expect(body.articles[9].title).to.equal('Am I a cat?');
         });
     });
-    it('GET status: 200 accepts sort_by and returns a list sorted by author', () => {
+    it('GET status: 200 accepts sort_by and returns an array of objects sorted by author', () => {
       return request
         .get('/api/topics/mitch/articles?sort_by=author&order=desc')
         .expect(200)
         .then(({ body }) => {
           //console.log(body.articles);
+          expect(body.articles[0].author).to.equal('rogersop');
           expect(body.articles[9].author).to.equal('butter_bridge');
         });
     });
@@ -122,6 +150,9 @@ describe('/api', () => {
           //console.log(body.articles);
           expect(body.articles[0].title).to.equal('Moustache');
         });
+    });
+    it('GET status: 400 client uses string instead of number on p query', () => {
+      return request.get('/api/topics/mitch/articles?p=hgdhdnl').expect(400);
     });
     it('POST status: 201 adds successully an article by topic', () => {
       return request
@@ -178,8 +209,16 @@ describe('/api', () => {
         username: 'butter_bridge'
       });
     });
+    it('PATCH status: 405 handles invalid requests', () => {
+      return request.patch('/api/topics').expect(405);
+    });
+    it('DELETE status: 405 handles invalid requests', () => {
+      return request.delete('/api/topics').expect(405);
+    });
+    it('PUT status: 405 handles invalid requests', () => {
+      return request.put('/api/topics').expect(405);
+    });
   });
-  //need to fix comment_count!!!
   describe('/articles', () => {
     it('GET status: 200 responds with an array of article objects', () => {
       return request
@@ -206,8 +245,75 @@ describe('/api', () => {
         .expect(200)
         .then(({ body }) => {
           //console.log(body.articles);
-          expect(body.articles[3].author).to.equal('butter_bridge');
-          expect(body.articles[3].comment_count).to.equal('2');
+          expect(body.articles[0].author).to.equal('butter_bridge');
+          expect(body.articles[0].comment_count).to.equal('13');
+        });
+    });
+    it('GET status: 200 accepts a limit query with default 10', () => {
+      return request
+        .get('/api/articles?limit=5')
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles).to.have.length(5);
+        });
+    });
+    it('GET status: 200 checks if limit defaults to 10 if not given', () => {
+      return request
+        .get('/api/articles')
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.articles).to.have.length(10);
+        });
+    });
+    it('GET status: 200 defaults sort_by date', () => {
+      return request
+        .get('/api/articles')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body.articles);
+          expect(body.articles[0].article_id).to.equal(1);
+          expect(body.articles[9].article_id).to.equal(10);
+        });
+    });
+    it('GET status: 200 accepts sort_by and returns an array of objects sorted by authors', () => {
+      return request
+        .get('/api/articles?sort_by=author&order=asc')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body.articles);
+          expect(body.articles[0].author).to.equal('butter_bridge');
+          expect(body.articles[9].author).to.equal('rogersop');
+        });
+    });
+    it('GET status: 400 client uses invalid column to sort', () => {
+      return request.get('/api/articles?sort_by=author_name').expect(400);
+    });
+    it('GET status: 200 accepts offset query with default 1', () => {
+      return request
+        .get('/api/articles?p=2')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body.articles);
+          expect(body.articles[0].author).to.equal('icellusedkars');
+        });
+    });
+    it('GET status: 200 returns article by article_id', () => {
+      return request
+        .get('/api/articles/1')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body);
+          expect(body.articles).to.be.an('array');
+          expect(body.articles[0]).to.have.keys(
+            'author',
+            'title',
+            'article_id',
+            'votes',
+            'created_at',
+            'topic',
+            'body',
+            'comment_count'
+          );
         });
     });
   });
