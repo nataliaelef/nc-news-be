@@ -14,7 +14,7 @@ describe('/api', () => {
   });
   after(() => connection.destroy());
   describe('/topics', () => {
-    it('GET status:200 responds with an array of topic objects', () => {
+    it('GET status: 200 responds with an array of topic objects', () => {
       return request
         .get('/api/topics')
         .expect(200)
@@ -27,7 +27,7 @@ describe('/api', () => {
           );
         });
     });
-    it('POST status:201 adds successully a topic', () => {
+    it('POST status: 201 adds successully a topic', () => {
       return request
         .post('/api/topics')
         .send({ slug: 'nat', description: 'developer to be' })
@@ -39,7 +39,7 @@ describe('/api', () => {
           expect(body.topic.description).to.equal('developer to be');
         });
     });
-    it('POST status:400 client uses a malformed body(properties missing)', () => {
+    it('POST status: 400 client uses a malformed body(properties missing)', () => {
       return request
         .post('/api/topics')
         .send({ animal: 'dog' })
@@ -69,7 +69,7 @@ describe('/api', () => {
           );
         });
     });
-    it('GET status:404 client uses a non-existent topic', () => {
+    it('GET status: 404 client uses a non-existent topic', () => {
       return request
         .get('/api/topics/dogs/articles')
         .expect(404)
@@ -78,7 +78,7 @@ describe('/api', () => {
           expect(body.message).to.equal('No articles found');
         });
     });
-    it('GET status:200 accepts limit query with default 10', () => {
+    it('GET status: 200 accepts limit query with default 10', () => {
       return request
         .get('/api/topics/mitch/articles?limit=10')
         .expect(200)
@@ -86,7 +86,7 @@ describe('/api', () => {
           expect(body.articles).to.have.length(10);
         });
     });
-    it('GET status:200 defaults sort_by date', () => {
+    it('GET status: 200 defaults sort_by date', () => {
       return request
         .get('/api/topics/mitch/articles')
         .expect(200)
@@ -98,7 +98,7 @@ describe('/api', () => {
           expect(body.articles[9].title).to.equal('Am I a cat?');
         });
     });
-    it('GET status:200 accepts sort_by and returns a list sorted by author', () => {
+    it('GET status: 200 accepts sort_by and returns a list sorted by author', () => {
       return request
         .get('/api/topics/mitch/articles?sort_by=author&order=desc')
         .expect(200)
@@ -107,12 +107,12 @@ describe('/api', () => {
           expect(body.articles[9].author).to.equal('butter_bridge');
         });
     });
-    it('GET status:400 client uses invalid column to sort', () => {
+    it('GET status: 400 client uses invalid column to sort', () => {
       return request
         .get('/api/topics/mitch/articles?sort_by=publish_date&order=desc')
         .expect(400);
     });
-    it('GET status:200 accepts offset query with default 1', () => {
+    it('GET status: 200 accepts offset query with default 1', () => {
       return request
         .get('/api/topics/mitch/articles?p=2')
         .expect(200)
@@ -121,6 +121,60 @@ describe('/api', () => {
           expect(body.articles[0].title).to.equal('Moustache');
         });
     });
-    //it('GET status:200 sort')
+    it('POST status: 201 adds successully an article by topic', () => {
+      return request
+        .post('/api/topics/cats/articles')
+        .send({
+          title: 'cat types',
+          body: "I don't know any",
+          username: 'butter_bridge'
+        })
+        .expect(201)
+        .then(({ body }) => {
+          //console.log(body.article);
+          expect(body.article).to.be.an('object');
+          expect(body.article).to.have.keys(
+            'article_id',
+            'title',
+            'body',
+            'username',
+            'created_at',
+            'votes',
+            'topic'
+          );
+          expect(body.article.title).to.equal('cat types');
+          expect(body.article.body).to.equal("I don't know any");
+          expect(body.article.username).to.equal('butter_bridge');
+          expect(body.article.article_id).to.equal(13);
+          expect(body.article.created_at).to.equal('2019-01-16T00:00:00.000Z');
+        });
+    });
+    it('POST status: 400 client using non-existent username', () => {
+      return request
+        .post('/api/topics/cats/articles')
+        .send({
+          title: 'beans',
+          body: 'They suppose to be good for you!',
+          username: 'butter_bean'
+        })
+        .expect(400);
+    });
+    it('POST status: 400 client using non-existent topic', () => {
+      return request
+        .post('/api/topics/foods/articles')
+        .send({
+          title: 'veggies',
+          body: 'They suppose to be good for you!',
+          username: 'butter_bridge'
+        })
+        .expect(400);
+    });
+    it('POST status: 400 client using an entry that already exists (except username)', () => {
+      return request.post('/api/topics/mitch/articles').send({
+        title: 'Moustache',
+        body: "Nonsense, it's not even that big!",
+        username: 'butter_bridge'
+      });
+    });
   });
 });

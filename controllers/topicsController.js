@@ -3,7 +3,6 @@ const connection = require('../db/connection');
 exports.getTopics = (req, res, next) => {
   //console.log('getting topics....');
   //console.log(req.params);
-
   connection('topics')
     .select('*')
     .then(topics => {
@@ -33,11 +32,9 @@ exports.getArticlesByTopic = (req, res, next) => {
     'topic'
   ];
   const { limit: maxResults, sort_by, p, order, ...restOfTopicArt } = req.query;
-
   if (sort_by && !col.includes(sort_by)) {
     return res.status(400).send({ message: 'bad request' });
   }
-
   connection('topics')
     .select(
       'username AS author',
@@ -59,6 +56,20 @@ exports.getArticlesByTopic = (req, res, next) => {
       if (!articles.length)
         return Promise.reject({ status: 404, message: 'No articles found' });
       res.status(200).send({ articles });
+    })
+    .catch(next);
+};
+
+exports.addArticleByTopic = (req, res, next) => {
+  const { topic } = req.params;
+  const { title, username, body } = req.body;
+  connection('articles')
+    .insert({ topic, title, username, body })
+    .returning('*')
+    .then(([article]) => {
+      //console.log(article);
+
+      res.status(201).send({ article });
     })
     .catch(next);
 };
