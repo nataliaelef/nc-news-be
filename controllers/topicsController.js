@@ -3,6 +3,7 @@ const connection = require('../db/connection');
 exports.getTopics = (req, res, next) => {
   //console.log('getting topics....');
   //console.log(req.params);
+
   connection('topics')
     .select('*')
     .then(topics => {

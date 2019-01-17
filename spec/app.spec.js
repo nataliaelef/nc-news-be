@@ -6,7 +6,6 @@ const connection = require('../db/connection');
 
 describe('/api', () => {
   beforeEach(() => {
-    //console.log('in before each hook...');
     return connection.migrate
       .rollback()
       .then(() => connection.migrate.latest())
@@ -91,10 +90,6 @@ describe('/api', () => {
           //console.log(body);
           expect(body.message).to.equal('No articles found');
         });
-    });
-    //should it be 400 - bad request?!
-    it('GET status: 404 client uses wrong type of topic (only string allowed)', () => {
-      return request.get('/api/topics/6556/articles').expect(404);
     });
     it('GET status: 200 accepts limit query with default 10', () => {
       return request
@@ -320,15 +315,21 @@ describe('/api', () => {
       return request.get('/api/articles/hffjk').expect(400);
     });
     it('GET status: 404 client uses non-existent article_id', () => {
-      return request.get('/api/articles/89').expect(404);
+      return request
+        .get('/api/articles/89')
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.message).to.equal('No articles found');
+        });
     });
     it('PATCH status: 200 responds with updated article', () => {
       return request
         .patch('/api/articles/1')
-        .send({ username: 'icellusedkars' })
+        .send({ title: 'here is some testing' })
         .expect(200)
         .then(({ body }) => {
-          expect(body.article[0].username).to.equal('icellusedkars');
+          expect(body.article[0].title).to.equal('here is some testing');
+          expect(body.article[0].article_id).to.equal(1);
         });
     });
     it('PATCH status: 200 updates multiple columns and responds with updated article', () => {
@@ -341,9 +342,40 @@ describe('/api', () => {
           expect(body.article[0].title).to.equal('this is a test');
         });
     });
-    //TODO: TEST status: 200 incrVotes
-    it('GET status: 204 deletes article by article_id', () => {
-      return request.delete('/api/articles/12').expect(204);
+    it('PATCH status: 200 updates votes', () => {
+      return request
+        .patch('/api/articles/2')
+        .send({ inc_votes: 5 })
+        .expect(200)
+        .then(({ body }) => {
+          // expect(body.article[0].votes).to.equal(5);
+          // expect(body.article[0].article_id).to.equal(2);
+          //the below test verifies that the right row was updated and the votes column got the expected val
+          expect(body.article.find(art => art.article_id === 2).votes).to.equal(
+            5
+          );
+        });
+    });
+    it('PATCH status: 404 client uses non-existent article_id', () => {
+      return request
+        .patch('/api/articles/98790')
+        .send({ body: 'keep testing' })
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.message).to.equal('No articles found');
+        });
+    });
+    it('DELETE status: 204 deletes article by article_id', () => {
+      return request
+        .delete('/api/articles/12')
+        .expect(204)
+        .then(({ body }) => {
+          expect(body).to.eql({});
+          return connection('articles').where('article_id', 12);
+        })
+        .then(([article]) => {
+          expect(article).to.equal(undefined);
+        });
     });
     it('GET status: 404 client uses a non-existent article_id', () => {
       return request
@@ -353,9 +385,9 @@ describe('/api', () => {
           expect(body.message).to.equal('No articles found');
         });
     });
-    // it('GET status: 400 client uses wrong type of article_id(only numbers are allowed)', () => {
-    //   return request.get('/api/articles/hjfufj/comments').expect(400);
-    // });
+    it('GET status: 400 client uses wrong type of article_id(only numbers are allowed)', () => {
+      return request.get('/api/articles/hjfufj/comments').expect(400);
+    });
     it('GET status: 200 responds with comments by article_id', () => {
       return request
         .get('/api/articles/1/comments')
@@ -364,6 +396,7 @@ describe('/api', () => {
           //console.log(body);
           expect(body.comments).to.be.an('array');
           expect(body.comments[0]).to.have.keys(
+            'comment_id',
             'article_id',
             'votes',
             'created_at',
@@ -392,23 +425,26 @@ describe('/api', () => {
     it('GET status: 400 client uses string instead of number in limit query', () => {
       return request.get('/api/articles/1/comments?limit=gsjfji').expect(400);
     });
-    // it('GET status: 200 defaults sort_by date', () => {
-    //   return request
-    //     .get('/api/acticles/1/comments')
-    //     .expect(200)
-    //     .then(({ body }) => {
-    //       //console.log(body);
-    //       expect(body.comments[0].comment_id).to.equal(2);
-    //       expect(body.comments[9].comment_id).to.equal(11);
-    //     });
-    // });
-    it('GET status: 200 accepts sort_by an returns an array of objects sorted by body', () => {
+    it('GET status: 200 defaults sort_by date', () => {
       return request
-        .get('/api/articles/1/comments?sort_by=author&order=desc')
+        .get('/api/articles/1/comments')
         .expect(200)
         .then(({ body }) => {
-          expect(body.comments[0].body).to.equal('Fruit pastilles');
-          expect(body.comments[9].body).to.equal('Ambidextrous marsupial');
+          //console.log(body);
+          expect(body.comments[0].author).to.equal('butter_bridge');
+          expect(body.comments[9].author).to.equal('icellusedkars');
+        });
+    });
+    it('GET status: 200 accepts sort_by an returns an array of objects sorted by body desc', () => {
+      return request
+        .get('/api/articles/1/comments?sort_by=comment_id&order=false')
+        .expect(200)
+        .then(({ body }) => {
+          const sortedIds = body.comments
+            .map(comment => comment.comment_id)
+            .sort((x, y) => y - x);
+          expect(body.comments[0].comment_id).to.equal(sortedIds[0]);
+          expect(body.comments[9].comment_id).to.equal(sortedIds[9]);
         });
     });
     it('GET status: 400 client uses invalid column to sort', () => {
@@ -416,13 +452,24 @@ describe('/api', () => {
         .get('/api/articles/1/comments?sort_by=date&order=desc')
         .expect(400);
     });
-    it('GET status: 200 accepts order query', () => {
+    it('GET status: 200 accepts order query true', () => {
       return request
         .get('/api/articles/1/comments?order=true')
         .expect(200)
         .then(({ body }) => {
           expect(body.comments[0].author).to.equal('butter_bridge');
           expect(body.comments[9].author).to.equal('icellusedkars');
+        });
+    });
+    it('GET status: 200 checks order defaults to desc', () => {
+      return request
+        .get('/api/articles/1/comments')
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.comments[0].body).to.equal(
+            'The beautiful thing about treasure is that it exists. Got to find out what kind of sheets these are; not cotton, not rayon, silky.'
+          );
+          expect(body.comments[9].body).to.equal('Ambidextrous marsupial');
         });
     });
     it('GET status: 200 accepts offset query with default 1', () => {
@@ -465,10 +512,101 @@ describe('/api', () => {
         .send({ username: 'butter_bridge', body: 'unlimited tests' })
         .expect(400);
     });
-    it('POST status: 400 client uses an entry that already exists (excepty username)', () => {
+    it('PATCH status: 200 responds with the updated comment', () => {
       return request
-        .post('/api/articles/1/comments')
-        .send({ username: 'butter_bridge', body: 'I hate streaming noses' });
+        .patch('/api/articles/1/comments/2')
+        .send({ username: 'icellusedkars' })
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.comment[0].username).to.equal('icellusedkars');
+        });
+    });
+    it('PATCH status: 200 updates multiple columns and responds with updated comment', () => {
+      return request
+        .patch('/api/articles/1/comments/2')
+        .send({ username: 'icellusedkars', body: 'testing' })
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.comment[0].username).to.equal('icellusedkars');
+          expect(body.comment[0].body).to.equal('testing');
+        });
+    });
+    it('PATCH status: 200 updates votes', () => {
+      return request
+        .patch('/api/articles/1/comments/2')
+        .send({ inc_votes: 5 })
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.comment.find(com => com.comment_id === 2).votes).to.equal(
+            19
+          );
+        });
+    });
+    it('PATCH status: 404 uses non-existent comment_id', () => {
+      return request
+        .patch('/api/articles/1/comments/756586960')
+        .send({ inc_votes: 10 })
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.message).to.equal('No comment found');
+        });
+    });
+    it('DELETE status: 204 deletes comment by comment_id', () => {
+      return request
+        .delete('/api/articles/1/comments/3')
+        .expect(204)
+        .then(({ body }) => {
+          expect(body).to.eql({});
+          return connection('comments').where('comment_id', 3);
+        })
+        .then(([comment]) => expect(comment).to.equal(undefined));
+    });
+    it('PUT status: 405 handles invalid requests', () => {
+      return request.put('/api/articles').expect(405);
+    });
+  });
+  describe('/users', () => {
+    it('GET status: 200 responds with an array of user objects', () => {
+      return request
+        .get('/api/users')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body.users);
+          expect(body.users).to.be.an('array');
+          //   expect(body.users[0]).to.have.keys('username', 'avatar_url', 'name');
+          //   expect(body.users[0].username).to.equal('butter_bridge');
+          //   expect(body.users[2].name).to.equal('paul');
+        });
+    });
+    it('GET status: 200 return user by username', () => {
+      return request
+        .get('/api/users/butter_bridge')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(users);
+          expect(body.users).to.be.an('array');
+          expect(body.users[0]).to.have.keys('username', 'avatar_url', 'name');
+        });
+    });
+    it('GET status: 404 client uses non-existent username', () => {
+      return request
+        .get('/api/users/fiqsf')
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.message).to.equal('Username not found');
+        });
+    });
+    it('PUT status: 405 handles invalid requests', () => {
+      return request.put('/api/users').expect(405);
+    });
+    it('DELETE status: 405 handles invalid requests', () => {
+      return request.delete('/api/users').expect(405);
+    });
+    it('PATCH status: 405 handles invalid requests', () => {
+      return request.patch('/api/users').expect(405);
+    });
+    it('POST status: 405 handles invalid requests', () => {
+      return request.post('/api/users').expect(405);
     });
   });
 });

@@ -60,14 +60,26 @@ exports.getArticles = (req, res, next) => {
 };
 
 exports.updateArticle = (req, res, next) => {
-  connection('articles')
+  const { inc_votes } = req.body;
+  const query = connection('articles')
     .select()
     .update(req.body)
-    .returning('*')
+    .where('article_id', req.params.article_id)
+    .returning('*');
+
+  //When increment and update are used in the same query then
+  //Knex ignores update and uses only increment
+  if (inc_votes) {
+    query.increment('votes', inc_votes);
+  }
+
+  query
     .then(article => {
+      if (!article.length)
+        return Promise.reject({ status: 404, message: 'No articles found' });
       res.status(200).send({ article });
     })
-    .catch(console.log);
+    .catch(next);
 };
 
 exports.deleteArticleById = (req, res, next) => {
@@ -80,7 +92,17 @@ exports.deleteArticleById = (req, res, next) => {
 };
 
 exports.getCommentsByArticleId = (req, res, next) => {
-  const columns = ['article_id', 'votes', 'created_at', 'author', 'body'];
+  const columns = [
+    'article_id',
+    'votes',
+    'created_at',
+    'author',
+    'body',
+    'comment_id'
+  ];
+
+  if (isNaN(req.params.article_id))
+    return res.status(400).send({ message: 'bad request' });
 
   const {
     limit: maxResults,
@@ -97,8 +119,9 @@ exports.getCommentsByArticleId = (req, res, next) => {
   )
     return res.status(400).send({ message: 'bad request' });
 
-  connection('comments')
+  const query = connection('comments')
     .select(
+      'comments.comment_id',
       'comments.article_id',
       'comments.votes',
       'comments.created_at',
@@ -107,8 +130,9 @@ exports.getCommentsByArticleId = (req, res, next) => {
     )
     .where(req.params)
     .limit(maxResults || 10)
-    .orderBy(sort_by || 'created_at', order || 'desc')
-    .offset((page - 1) * (maxResults || 10) || 0)
+    .orderBy(sort_by || 'created_at', order === 'true' ? 'asc' : 'desc')
+    .offset((page - 1) * (maxResults || 10) || 0);
+  query
     .then(comments => {
       if (!comments.length)
         return Promise.reject({ status: 404, message: 'No articles found' });
@@ -126,5 +150,36 @@ exports.addCommentByArticleId = (req, res, next) => {
     .then(([comment]) => {
       res.status(201).send({ comment });
     })
+    .catch(next);
+};
+
+exports.updatedComment = (req, res, next) => {
+  const { inc_votes } = req.body;
+
+  const query = connection('comments')
+    .select()
+    .update(req.body)
+    .where('comment_id', req.params.comment_id)
+    .returning('*');
+
+  if (inc_votes) {
+    query.increment('votes', inc_votes);
+  }
+
+  query
+    .then(comment => {
+      if (!comment.length)
+        return Promise.reject({ status: 404, message: 'No comment found' });
+      res.status(200).send({ comment });
+    })
+    .catch(next);
+};
+
+exports.deleteCommentById = (req, res, next) => {
+  connection('comments')
+    .select()
+    .where(req.params)
+    .del()
+    .then(() => res.status(204).send())
     .catch(next);
 };
