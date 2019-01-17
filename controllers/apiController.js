@@ -6,7 +6,7 @@ exports.getEndpoints = (req, res, next) => {
       next(err);
     } else {
       const endpoints = JSON.parse(data);
-      res.status(200).send(endpoints);
+      res.status(200).send({ endpoints });
     }
   });
 };

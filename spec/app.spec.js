@@ -12,6 +12,24 @@ describe('/api', () => {
       .then(() => connection.seed.run());
   });
   after(() => connection.destroy());
+  it('GET status: 200 returns an array of endpoinds objects', () => {
+    return request
+      .get('/api')
+      .expect(200)
+      .then(({ body }) => {
+        expect(body.endpoints).to.be.an('array');
+        expect(body.endpoints).to.have.length(14);
+      });
+  });
+  it('PATCH status: 405 handles invalid requests', () => {
+    return request.patch('/api').expect(405);
+  });
+  it('DELETE status: 405 handles invalid requests', () => {
+    return request.delete('/api').expect(405);
+  });
+  it('PUT status: 405 handles invalid requests', () => {
+    return request.put('/api').expect(405);
+  });
   describe('/topics', () => {
     it('GET status: 200 responds with an array of topic objects', () => {
       return request
