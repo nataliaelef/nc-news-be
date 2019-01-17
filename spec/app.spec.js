@@ -92,7 +92,7 @@ describe('/api', () => {
           expect(body.message).to.equal('No articles found');
         });
     });
-    //shoulb it be 400 - bad request?!
+    //should it be 400 - bad request?!
     it('GET status: 404 client uses wrong type of topic (only string allowed)', () => {
       return request.get('/api/topics/6556/articles').expect(404);
     });
@@ -179,10 +179,10 @@ describe('/api', () => {
           expect(body.article.body).to.equal("I don't know any");
           expect(body.article.username).to.equal('butter_bridge');
           expect(body.article.article_id).to.equal(13);
-          expect(body.article.created_at).to.equal('2019-01-16T00:00:00.000Z');
+          expect(body.article.created_at).to.equal('2019-01-17T00:00:00.000Z');
         });
     });
-    it('POST status: 400 client using non-existent username', () => {
+    it('POST status: 400 client uses non-existent username', () => {
       return request
         .post('/api/topics/cats/articles')
         .send({
@@ -192,7 +192,7 @@ describe('/api', () => {
         })
         .expect(400);
     });
-    it('POST status: 400 client using non-existent topic', () => {
+    it('POST status: 400 client uses non-existent topic', () => {
       return request
         .post('/api/topics/foods/articles')
         .send({
@@ -315,6 +315,160 @@ describe('/api', () => {
             'comment_count'
           );
         });
+    });
+    it('GET status:400 client uses invalid article_id', () => {
+      return request.get('/api/articles/hffjk').expect(400);
+    });
+    it('GET status: 404 client uses non-existent article_id', () => {
+      return request.get('/api/articles/89').expect(404);
+    });
+    it('PATCH status: 200 responds with updated article', () => {
+      return request
+        .patch('/api/articles/1')
+        .send({ username: 'icellusedkars' })
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.article[0].username).to.equal('icellusedkars');
+        });
+    });
+    it('PATCH status: 200 updates multiple columns and responds with updated article', () => {
+      return request
+        .patch('/api/articles/1')
+        .send({ body: 'nat', title: 'this is a test' })
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.article[0].body).to.equal('nat');
+          expect(body.article[0].title).to.equal('this is a test');
+        });
+    });
+    //TODO: TEST status: 200 incrVotes
+    it('GET status: 204 deletes article by article_id', () => {
+      return request.delete('/api/articles/12').expect(204);
+    });
+    it('GET status: 404 client uses a non-existent article_id', () => {
+      return request
+        .get('/api/articles/567/comments')
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.message).to.equal('No articles found');
+        });
+    });
+    // it('GET status: 400 client uses wrong type of article_id(only numbers are allowed)', () => {
+    //   return request.get('/api/articles/hjfufj/comments').expect(400);
+    // });
+    it('GET status: 200 responds with comments by article_id', () => {
+      return request
+        .get('/api/articles/1/comments')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body);
+          expect(body.comments).to.be.an('array');
+          expect(body.comments[0]).to.have.keys(
+            'article_id',
+            'votes',
+            'created_at',
+            'author',
+            'body'
+          );
+        });
+    });
+    it('GET status: 200 accepts limit query with default of 10', () => {
+      return request
+        .get('/api/articles/1/comments?limit=5')
+        .expect(200)
+        .then(({ body }) => {
+          //console.log(body);
+          expect(body.comments).to.have.length(5);
+        });
+    });
+    it('GET status: 200 checks if limit defaults to 10 if not given', () => {
+      return request
+        .get('/api/articles/1/comments')
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.comments).to.have.length(10);
+        });
+    });
+    it('GET status: 400 client uses string instead of number in limit query', () => {
+      return request.get('/api/articles/1/comments?limit=gsjfji').expect(400);
+    });
+    // it('GET status: 200 defaults sort_by date', () => {
+    //   return request
+    //     .get('/api/acticles/1/comments')
+    //     .expect(200)
+    //     .then(({ body }) => {
+    //       //console.log(body);
+    //       expect(body.comments[0].comment_id).to.equal(2);
+    //       expect(body.comments[9].comment_id).to.equal(11);
+    //     });
+    // });
+    it('GET status: 200 accepts sort_by an returns an array of objects sorted by body', () => {
+      return request
+        .get('/api/articles/1/comments?sort_by=author&order=desc')
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.comments[0].body).to.equal('Fruit pastilles');
+          expect(body.comments[9].body).to.equal('Ambidextrous marsupial');
+        });
+    });
+    it('GET status: 400 client uses invalid column to sort', () => {
+      return request
+        .get('/api/articles/1/comments?sort_by=date&order=desc')
+        .expect(400);
+    });
+    it('GET status: 200 accepts order query', () => {
+      return request
+        .get('/api/articles/1/comments?order=true')
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.comments[0].author).to.equal('butter_bridge');
+          expect(body.comments[9].author).to.equal('icellusedkars');
+        });
+    });
+    it('GET status: 200 accepts offset query with default 1', () => {
+      return request
+        .get('/api/articles/1/comments?p=2')
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.comments[0].author).to.equal('icellusedkars');
+        });
+    });
+    it('GET status: 400 client uses string instead of number on p query', () => {
+      return request.get('/api/articles/1/comments?p=hgdhdnl').expect(400);
+    });
+    it('POST status: 201 adds successfully a comment by article_id', () => {
+      return request
+        .post('/api/articles/1/comments')
+        .send({
+          username: 'butter_bridge',
+          body: 'test test test'
+        })
+        .expect(201)
+        .then(({ body }) => {
+          //console.log(body);
+          expect(body.comment).to.be.an('object');
+          expect(body.comment).to.have.keys(
+            'username',
+            'body',
+            'article_id',
+            'votes',
+            'comment_id',
+            'created_at'
+          );
+          expect(body.comment.username).to.equal('butter_bridge');
+          expect(body.comment.body).to.equal('test test test');
+        });
+    });
+    it('POST status: 400 client uses non-existent article_id', () => {
+      return request
+        .post('/api/articles/18976/comments')
+        .send({ username: 'butter_bridge', body: 'unlimited tests' })
+        .expect(400);
+    });
+    it('POST status: 400 client uses an entry that already exists (excepty username)', () => {
+      return request
+        .post('/api/articles/1/comments')
+        .send({ username: 'butter_bridge', body: 'I hate streaming noses' });
     });
   });
 });
