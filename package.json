@@ -13,9 +13,9 @@
     "migrate:rollack": "knex migrate:rollback",
     "seed:db": "npm run migrate:rollack && npm run migrate:latest && knex seed:run",
     "dev": "nodemon listen.js",
-    "seed:prod": "DB_URL=$d9695cqjbtdlqg knex seed:run --env production",
-    "migrate:latest:prod": "DB_URL=$d9695cqjbtdlqg knex migrate:latest --env production",
-    "migrate:rollback:prod": "DB_URL=$d9695cqjbtdlqg knex migrate:rollback --env production",
+    "seed:prod": "DB_URL=$(heroku config:get DATABASE_URL) knex seed:run --env production",
+    "migrate:latest:prod": "DB_URL=$(heroku config:get DATABASE_URL) knex migrate:latest --env production",
+    "migrate:rollback:prod": "DB_URL=$(heroku config:get DATABASE_URL) knex migrate:rollback --env production",
     "start": "node listen.js"
   },
   "repository": {
