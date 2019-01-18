@@ -150,6 +150,7 @@ describe('/api', () => {
           expect(body.articles[9].author).to.equal('butter_bridge');
         });
     });
+    //this should return 200 with the default
     it('GET status: 400 client uses invalid column to sort', () => {
       return request
         .get('/api/topics/mitch/articles?sort_by=publish_date&order=desc')
@@ -361,6 +362,7 @@ describe('/api', () => {
           expect(body.article[0].title).to.equal('this is a test');
         });
     });
+    //check votes decreasing && invalid article_id 404 && empty inc_votes = '' 400 && empty body 200 with same
     it('PATCH status: 200 updates votes', () => {
       return request
         .patch('/api/articles/2')
@@ -384,6 +386,7 @@ describe('/api', () => {
           expect(body.message).to.equal('No articles found');
         });
     });
+    //404 delete something that does not exist
     it('DELETE status: 204 deletes article by article_id', () => {
       return request
         .delete('/api/articles/12')
