@@ -167,6 +167,7 @@ describe('/api', () => {
     it('GET status: 400 client uses string instead of number on p query', () => {
       return request.get('/api/topics/mitch/articles?p=hgdhdnl').expect(400);
     });
+    //check date with tutor!!!
     it('POST status: 201 adds successully an article by topic', () => {
       return request
         .post('/api/topics/cats/articles')
@@ -192,7 +193,7 @@ describe('/api', () => {
           expect(body.article.body).to.equal("I don't know any");
           expect(body.article.username).to.equal('butter_bridge');
           expect(body.article.article_id).to.equal(13);
-          expect(body.article.created_at).to.equal('2019-01-17T00:00:00.000Z');
+          expect(body.article.created_at).to.equal('2019-01-18T00:00:00.000Z');
         });
     });
     it('POST status: 400 client uses non-existent username', () => {
