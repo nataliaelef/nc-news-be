@@ -5,11 +5,16 @@ const usersRouter = require('./usersRouter');
 const { getEndpoints } = require('../controllers/apiController');
 const { handle405 } = require('../errors');
 
+apiRouter
+  .route('/')
+  .get(getEndpoints)
+  .all(handle405);
+
 apiRouter.use('/topics', topicsRouter);
 apiRouter.use('/articles', articlesRouter);
 apiRouter.use('/users', usersRouter);
 
-apiRouter.get('/', getEndpoints);
-apiRouter.all('/', handle405);
+// apiRouter.get('/', getEndpoints);
+// apiRouter.all('/', handle405);
 
 module.exports = apiRouter;
