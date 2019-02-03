@@ -149,7 +149,7 @@ GET /api/topics/:topic/articles
   - `title`
   - `article_id`
   - `votes`
-  - `comment_count` which is the accumulated count of all the comments with this article_id. You should make use of knex queries in order to achieve this.
+  - `total_count` which is the accumulated count of all the comments with this article_id. You should make use of knex queries in order to achieve this.
   - `created_at`
   - `topic`
 
@@ -180,7 +180,7 @@ GET /api/articles
   - `article_id`
   - `body`
   - `votes`
-  - `comment_count` which is the accumulated count of all the comments with this article_id. You should make use of knex queries in order to achieve this.
+  - `total_count` which is the accumulated count of all the comments with this article_id. You should make use of knex queries in order to achieve this.
   - `created_at`
   - `topic`
 
@@ -203,7 +203,7 @@ GET /api/articles/:article_id
   - `title`
   - `votes`
   - `body`
-  - `comment_count` which is the count of all the comments with this article_id. A particular SQL clause is useful for this job!
+  - `total_count` which is the count of all the comments with this article_id. A particular SQL clause is useful for this job!
   - `created_at`
   - `topic`
 
