@@ -19,10 +19,4 @@ topicsRouter
   .post(addArticleByTopic)
   .all(handle405);
 
-// topicsRouter.get('/', getTopics);
-// topicsRouter.post('/', addTopic);
-// topicsRouter.all('/', handle405);
-// topicsRouter.get('/:topic/articles', getArticlesByTopic);
-// topicsRouter.post('/:topic/articles', addArticleByTopic);
-
 module.exports = topicsRouter;

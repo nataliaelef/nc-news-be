@@ -1,4 +1,4 @@
-exports.formatArticles = articleData => articleData.map(({ created_by, created_at, ...restOfArticle }) => ({
+exports.formatArticles = data => data.map(({ created_by, created_at, ...restOfArticle }) => ({
   username: created_by,
   created_at: new Date(created_at),
   ...restOfArticle,

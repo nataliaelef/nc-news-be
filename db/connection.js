@@ -5,9 +5,3 @@ const config = ENV === 'production'
   : require('../knexfile')[ENV];
 
 module.exports = require('knex')(config);
-// const knex = require('knex');
-// const dbConfig = require('../knexfile')[ENV];
-
-// const connection = knex(dbConfig);
-
-// module.exports = connection;
