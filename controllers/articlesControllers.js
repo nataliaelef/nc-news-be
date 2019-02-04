@@ -230,13 +230,14 @@ exports.deleteCommentById = (req, res, next) => {
   ) res.status(400).send({ message: 'bad request' });
 
   connection('comments')
-    .select()
-    .where(req.params, true)
+    .select('*')
+    .where(req.params)
     .del()
     .returning('*')
     .then(([comment]) => {
+      // console.log(comment);
       if (!comment) return Promise.reject({ status: 404, message: 'Not found' });
-      return res.status(204).send({ comment });
+      return res.status(204).send({});
     })
     .catch(next);
   return null;

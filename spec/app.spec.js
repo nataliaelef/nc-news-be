@@ -458,16 +458,13 @@ describe('/api', () => {
             .patch('/api/articles/1/comments/1')
             .send({ inc_votes: 'gfffh' })
             .expect(400));
-          it.only('DELETE status: 204', () => {
-            request
-              .delete('/api/articles/1/comments/1')
-              .expect(204)
-              .then(({ body }) => {
-                expect(body).to.eql({});
-                return connection('comments').where('comment_id', 1);
-              })
-              .then(([comment]) => expect(comment).to.equal(undefined));
-          });
+          it('DELETE status:204 accepts a delete requests and deletes the article from the databse', () => request
+            .delete('/api/articles/9/comments/1')
+            .expect(204)
+            .then(() => request.get('/api/articles/9/comments'))
+            .then(({ body }) => {
+              expect(body.comments).to.have.lengthOf(1);
+            }));
           it('DELETE status: 404 client uses non-existent article_id', () => request.delete('/api/articles/705/comments/3').expect(404));
           it('DELETE status: 404 client uses non-existent comment_id', () => request.delete('/api/articles/7/comments/325').expect(404));
           it('PUT status: 405 handles invalid requests', () => request.put('/api/articles/1/comments/3').expect(405));
