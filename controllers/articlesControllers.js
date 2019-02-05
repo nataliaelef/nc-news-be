@@ -1,9 +1,7 @@
 const connection = require('../db/connection');
 
 exports.getArticles = (req, res, next) => {
-  const {
-    limit: maxResults, sort_by, order, p: page,
-  } = req.query;
+  const { limit: maxResults, sort_by, order, p: page } = req.query;
 
   const columns = [
     'author',
@@ -12,7 +10,7 @@ exports.getArticles = (req, res, next) => {
     'votes',
     'body',
     'created_at',
-    'topic',
+    'topic'
   ];
 
   if (sort_by && !columns.includes(sort_by)) {
@@ -26,7 +24,7 @@ exports.getArticles = (req, res, next) => {
       'articles.article_id',
       'articles.votes',
       'articles.created_at',
-      'topic',
+      'topic'
     )
     .from('articles')
     .leftJoin('comments', 'comments.article_id', 'articles.article_id')
@@ -35,8 +33,9 @@ exports.getArticles = (req, res, next) => {
     .limit(maxResults || 10)
     .orderBy(sort_by || 'created_at', order || 'desc')
     .offset((page - 1) * (maxResults || 10) || 0)
-    .then((articles) => {
-      if (!articles.length) return Promise.reject({ status: 404, message: 'No articles found' });
+    .then(articles => {
+      if (!articles.length)
+        return Promise.reject({ status: 404, message: 'No articles found' });
       return res.status(200).send({ articles });
     })
     .catch(next);
@@ -52,14 +51,15 @@ exports.getArticleById = (req, res, next) => {
     'votes',
     'body',
     'created_at',
-    'topic',
+    'topic'
   ];
 
   const { article_id } = req.params;
   if (
-    (sort_by && !columns.includes(sort_by))
-    || (req.params.article_id && !parseInt(article_id, 10))
-  ) return res.status(400).send({ message: 'bad request' });
+    (sort_by && !columns.includes(sort_by)) ||
+    (req.params.article_id && !parseInt(article_id, 10))
+  )
+    return res.status(400).send({ message: 'bad request' });
 
   connection
     .select(
@@ -68,7 +68,7 @@ exports.getArticleById = (req, res, next) => {
       'articles.article_id',
       'articles.votes',
       'articles.created_at',
-      'topic',
+      'topic'
     )
     .from('articles')
     .leftJoin('comments', 'comments.article_id', 'articles.article_id')
@@ -76,13 +76,17 @@ exports.getArticleById = (req, res, next) => {
     .groupBy('articles.article_id')
     .where('articles.article_id', article_id)
     .then(([article]) => {
-      if (!article) return Promise.reject({ status: 404, message: 'Not found' });
+      if (!article)
+        return Promise.reject({ status: 404, message: 'Not found' });
       return res.status(200).send({ article });
     })
     .catch(next);
   return null;
 };
 
+// Expexts article_id as path parm
+// Expects body with following properties
+// inc_votes
 exports.updateArticle = (req, res, next) => {
   const { inc_votes } = req.body;
 
@@ -103,7 +107,8 @@ exports.updateArticle = (req, res, next) => {
 
   query
     .then(([article]) => {
-      if (!article) return Promise.reject({ status: 404, message: 'Not found' });
+      if (!article)
+        return Promise.reject({ status: 404, message: 'Not found' });
       return res.status(200).send({ article });
     })
     .catch(next);
@@ -113,7 +118,8 @@ exports.updateArticle = (req, res, next) => {
 exports.deleteArticleById = (req, res, next) => {
   const { article_id } = req.params;
 
-  if (article_id && !parseInt(article_id, 10)) res.status(400).send({ message: 'bad request' });
+  if (article_id && !parseInt(article_id, 10))
+    res.status(400).send({ message: 'bad request' });
 
   connection('articles')
     .select()
@@ -121,7 +127,8 @@ exports.deleteArticleById = (req, res, next) => {
     .del()
     .returning('*')
     .then(([article]) => {
-      if (!article) return Promise.reject({ status: 404, message: 'Not found' });
+      if (!article)
+        return Promise.reject({ status: 404, message: 'Not found' });
       return res.status(204).send({ article });
     })
     .catch(next);
@@ -135,20 +142,19 @@ exports.getCommentsByArticleId = (req, res, next) => {
     'created_at',
     'author',
     'body',
-    'comment_id',
+    'comment_id'
   ];
 
   const { article_id } = req.params;
-  const {
-    limit: maxResults, sort_by, order, p: page,
-  } = req.query;
+  const { limit: maxResults, sort_by, order, p: page } = req.query;
 
   if (
-    (maxResults && !parseInt(maxResults, 10))
-    || (sort_by && !columns.includes(sort_by))
-    || ((page && !parseInt(page, 10))
-      || (req.params.article_id && !parseInt(article_id, 10)))
-  ) return res.status(400).send({ message: 'bad request' });
+    (maxResults && !parseInt(maxResults, 10)) ||
+    (sort_by && !columns.includes(sort_by)) ||
+    ((page && !parseInt(page, 10)) ||
+      (req.params.article_id && !parseInt(article_id, 10)))
+  )
+    return res.status(400).send({ message: 'bad request' });
 
   const query = connection('comments')
     .select(
@@ -157,15 +163,16 @@ exports.getCommentsByArticleId = (req, res, next) => {
       'comments.votes',
       'comments.created_at',
       'comments.username as author',
-      'comments.body',
+      'comments.body'
     )
     .where(req.params)
     .limit(maxResults || 10)
     .orderBy(sort_by || 'created_at', order === 'true' ? 'asc' : 'desc')
     .offset((page - 1) * (maxResults || 10) || 0);
   query
-    .then((comments) => {
-      if (!comments.length) return Promise.reject({ status: 404, message: 'Not found' });
+    .then(comments => {
+      if (!comments.length)
+        return Promise.reject({ status: 404, message: 'Not found' });
       return res.status(200).send({ comments });
     })
     .catch(next);
@@ -176,13 +183,15 @@ exports.addCommentByArticleId = (req, res, next) => {
   const { article_id } = req.params;
   const { username, body } = req.body;
 
-  if ((article_id && !parseInt(article_id, 10)) || !username || !body) res.status(400).send({ message: 'bad request' });
+  if ((article_id && !parseInt(article_id, 10)) || !username || !body)
+    res.status(400).send({ message: 'bad request' });
 
   connection('comments')
     .insert({ article_id, username, body })
     .returning('*')
     .then(([comment]) => {
-      if (!comment) return Promise.reject({ status: 404, message: 'Not found' });
+      if (!comment)
+        return Promise.reject({ status: 404, message: 'Not found' });
       return res.status(201).send({ comment });
     })
     .catch(next);
@@ -194,10 +203,11 @@ exports.updateCommentByCommentId = (req, res, next) => {
   const { comment_id, article_id } = req.params;
 
   if (
-    (comment_id && !parseInt(comment_id, 10))
-    || (article_id && !parseInt(article_id, 10))
-    || (!parseInt(inc_votes, 10) && inc_votes !== '')
-  ) res.status(400).send({ message: 'bad request' });
+    (comment_id && !parseInt(comment_id, 10)) ||
+    (article_id && !parseInt(article_id, 10)) ||
+    (!parseInt(inc_votes, 10) && inc_votes !== '')
+  )
+    res.status(400).send({ message: 'bad request' });
 
   const query = connection('comments')
     .select()
@@ -214,7 +224,8 @@ exports.updateCommentByCommentId = (req, res, next) => {
 
   query
     .then(([comment]) => {
-      if (!comment) return Promise.reject({ status: 404, message: 'Not found' });
+      if (!comment)
+        return Promise.reject({ status: 404, message: 'Not found' });
       return res.status(200).send({ comment });
     })
     .catch(next);
@@ -225,9 +236,10 @@ exports.deleteCommentById = (req, res, next) => {
   const { article_id, comment_id } = req.params;
 
   if (
-    (article_id && !parseInt(article_id, 10))
-    || (comment_id && !parseInt(comment_id, 10))
-  ) res.status(400).send({ message: 'bad request' });
+    (article_id && !parseInt(article_id, 10)) ||
+    (comment_id && !parseInt(comment_id, 10))
+  )
+    res.status(400).send({ message: 'bad request' });
 
   connection('comments')
     .select('*')
@@ -236,7 +248,8 @@ exports.deleteCommentById = (req, res, next) => {
     .returning('*')
     .then(([comment]) => {
       // console.log(comment);
-      if (!comment) return Promise.reject({ status: 404, message: 'Not found' });
+      if (!comment)
+        return Promise.reject({ status: 404, message: 'Not found' });
       return res.status(204).send({});
     })
     .catch(next);
