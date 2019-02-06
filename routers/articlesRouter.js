@@ -35,14 +35,4 @@ articlesRouter
   .delete(deleteCommentById)
   .all(handle405);
 
-// articlesRouter.patch('/:article_id/comments/:comment_id', updatedComment);
-// articlesRouter.delete('/:article_id/comments/:comment_id', deleteCommentById);
-// articlesRouter.get('/:article_id/comments', getCommentsByArticleId);
-// articlesRouter.post('/:article_id/comments', addCommentByArticleId);
-// articlesRouter.get('/:article_id', getArticles);
-// articlesRouter.patch('/:article_id', updateArticle);
-// articlesRouter.delete('/:article_id', deleteArticleById);
-// articlesRouter.get('/', getArticles);
-// articlesRouter.all('/', handle405);
-
 module.exports = articlesRouter;

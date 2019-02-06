@@ -213,6 +213,7 @@ describe('/api', () => {
             'title',
             'article_id',
             'votes',
+            'body',
             'total_count',
             'created_at',
             'topic'
@@ -284,6 +285,7 @@ describe('/api', () => {
               'title',
               'article_id',
               'votes',
+              'body',
               'created_at',
               'topic',
               'total_count'
