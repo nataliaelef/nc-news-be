@@ -81,7 +81,8 @@ describe('/api', () => {
               'votes',
               'total_count',
               'created_at',
-              'topic'
+              'topic',
+              'body'
             );
           }));
       it('GET status: 200 responds with the total of the comments for the specific article', () =>

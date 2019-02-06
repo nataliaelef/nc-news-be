@@ -3,7 +3,7 @@ const connection = require('../db/connection');
 exports.getTopics = (req, res, next) => {
   connection('topics')
     .select('*')
-    .then((topics) => {
+    .then(topics => {
       res.status(200).send({ topics });
     })
     .catch(next);
@@ -31,14 +31,13 @@ exports.getArticlesByTopic = (req, res, next) => {
     'total_count',
     'created_at',
     'topic',
+    'body'
   ];
-  const {
-    limit: maxResults, sort_by, p: page, order,
-  } = req.query;
+  const { limit: maxResults, sort_by, p: page, order } = req.query;
   if (
-    (sort_by && !columns.includes(sort_by))
-    || (maxResults && !parseInt(maxResults, 10))
-    || (page && !parseInt(page, 10))
+    (sort_by && !columns.includes(sort_by)) ||
+    (maxResults && !parseInt(maxResults, 10)) ||
+    (page && !parseInt(page, 10))
   ) {
     return res.status(400).send({ message: 'bad request' });
   }
@@ -51,6 +50,7 @@ exports.getArticlesByTopic = (req, res, next) => {
       'articles.votes',
       'articles.created_at',
       'articles.topic',
+      'articles.body'
     )
     .where(req.params)
     .offset((page - 1) * (maxResults || 10) || 0)
@@ -60,8 +60,9 @@ exports.getArticlesByTopic = (req, res, next) => {
     .leftJoin('topics', 'topics.slug', 'articles.topic')
     .leftJoin('comments', 'comments.article_id', 'articles.article_id')
     .groupBy('articles.article_id')
-    .then((articles) => {
-      if (!articles.length) return Promise.reject({ status: 404, message: 'No articles found' });
+    .then(articles => {
+      if (!articles.length)
+        return Promise.reject({ status: 404, message: 'No articles found' });
       return res.status(200).send({ articles });
     })
     .catch(next);
@@ -76,7 +77,7 @@ exports.addArticleByTopic = (req, res, next) => {
       topic,
       title,
       username,
-      body,
+      body
     })
     .returning('*')
     .then(([article]) => {
