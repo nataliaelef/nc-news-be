@@ -4,6 +4,7 @@ const {
   addTopic,
   getArticlesByTopic,
   addArticleByTopic,
+  deleteTopicBySlug,
 } = require('../controllers/topicsController');
 const { handle405 } = require('../errors');
 
@@ -11,6 +12,11 @@ topicsRouter
   .route('/')
   .get(getTopics)
   .post(addTopic)
+  .all(handle405);
+
+topicsRouter
+  .route('/:topic')
+  .delete(deleteTopicBySlug)
   .all(handle405);
 
 topicsRouter

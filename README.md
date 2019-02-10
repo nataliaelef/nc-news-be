@@ -20,8 +20,8 @@ This is a guide to help you get set up with the API so that you can use it local
 First cd into the location that you want to store the file and run the following commands in your terminal.
 
 ```http
-git clone https://github.com/nataliaelef/BE2-NC-Knews
-cd BE2-NC-Knews
+git clone https://github.com/nataliaelef/NC-NEWS-BE
+cd NC-NEWS-BE
 npm install
 ```
 
@@ -113,7 +113,7 @@ To run tests make sure you are in test mode in the command line
 
 ## Deployment
 
-Hosted on [Heroku](add heroku link for the app)
+Hosted on [Heroku](https://nc-news-api-ne.herokuapp.com/api)
 
 ## Built With
 
@@ -302,3 +302,7 @@ GET /api
   - `path`
   - `description`
   - `method`
+
+## Author
+
+Natali Eleftheriou - [https://github.com/nataliaelef/NC-NEWS-BE](https://github.com/nataliaelef/NC-NEWS-BE)

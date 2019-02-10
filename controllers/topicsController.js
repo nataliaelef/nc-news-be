@@ -86,3 +86,21 @@ exports.addArticleByTopic = (req, res, next) => {
     })
     .catch(next);
 };
+
+exports.deleteTopicBySlug = (req, res, next) => {
+  const { topic: slug } = req.params;
+  connection('topics')
+    .select()
+    .where({ slug }, true)
+    .del()
+    .returning('*')
+    .then(([topic]) => {
+      if (!topic) {
+        return Promise.reject({ status: 404, message: 'Not found' });
+      }
+      return res.status(204).send({ topic });
+    })
+    .catch(next);
+
+  return null;
+};

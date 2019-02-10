@@ -67,6 +67,27 @@ describe('/api', () => {
       request.delete('/api/topics').expect(405));
     it('PUT status: 405 handles invalid requests', () =>
       request.put('/api/topics').expect(405));
+    describe('/:topic', () => {
+      it('DELETE status: 204 deletes topic by slug', () =>
+        request
+          .delete('/api/topics/cats')
+          .expect(204)
+          .then(({ body }) => {
+            expect(body).to.eql({});
+            return connection('topics').where('slug', 'cats');
+          })
+          .then(([topic]) => {
+            expect(topic).to.equal(undefined);
+          }));
+      it('POST status: 405 handles invalid request', () =>
+        request.post('/api/topics/:topic').expect(405));
+      it('PATCH status: 405 handles invalid request', () =>
+        request.patch('/api/topics/:topic').expect(405));
+      it('GET status: 405 handles invalid request', () =>
+        request.get('/api/topics/:topic').expect(405));
+      it('PUT status: 405 handles invalid request', () =>
+        request.put('/api/topics/:topic').expect(405));
+    });
     describe('/:topic/articles', () => {
       it('GET status: 200 responds with an array of article objects for a given topic', () =>
         request

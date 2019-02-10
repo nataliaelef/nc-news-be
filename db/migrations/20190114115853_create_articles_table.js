@@ -13,6 +13,7 @@ exports.up = function (knex, Promise) {
     table
       .string('topic')
       .references('topics.slug')
+      .onDelete('CASCADE')
       .notNullable();
     table
       .string('username')
