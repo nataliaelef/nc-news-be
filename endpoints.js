@@ -11,7 +11,7 @@ exports.endpoints = [
   },
   {
     Path: '/api/topics/:topic',
-    Description: 'Dleted topic by slug',
+    Description: 'Deleted topic by slug',
     Method: 'DELETE'
   },
   {
