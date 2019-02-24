@@ -1,5 +1,5 @@
-exports.up = function (knex, Promise) {
-  return knex.schema.createTable('users', (table) => {
+exports.up = function(knex, Promise) {
+  return knex.schema.createTable('users', table => {
     table
       .string('username')
       .primary()
@@ -10,11 +10,11 @@ exports.up = function (knex, Promise) {
       .string('avatar_url')
       .notNull()
       .defaultTo(
-        'https://www.qualiscare.com/wp-content/uploads/2017/08/default-user.png',
+        `https://api.adorable.io/avatars/${Math.round(Math.random() * 1000)}`
       );
   });
 };
 
-exports.down = function (knex, Promise) {
+exports.down = function(knex, Promise) {
   return knex.schema.dropTable('users');
 };
